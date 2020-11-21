@@ -1,14 +1,25 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.models import User
 
 from .models import Choice, Question
+from .form import QuestionForm
+from .form import SignUpForm
+from .form import UserUpdateForm
+from .form import NewPollForm
+from .form import ChoiceForm
 
-
-class IndexView(generic.ListView):
+class IndexView(LoginRequiredMixin, generic.ListView):
+    login_url = '../accounts/login/'
     template_name = 'polls/index.html'
     context_object_name = 'latest_question_list'
 
@@ -20,9 +31,9 @@ class IndexView(generic.ListView):
         return Question.objects.filter(
             pub_date__lte=timezone.now()
         ).order_by('-pub_date')[:5]
-    
 
-class DetailView(generic.DetailView):
+class DetailView(LoginRequiredMixin, generic.DetailView):
+    login_url = '../../accounts/login/'
     model = Question
     template_name = 'polls/details.html'
     def get_queryset(self):
@@ -31,10 +42,19 @@ class DetailView(generic.DetailView):
         """
         return Question.objects.filter(pub_date__lte=timezone.now())
 
-
-class ResultsView(generic.DetailView):
+class ResultsView(LoginRequiredMixin, generic.DetailView):
+    login_url = '../../../accounts/login/'
     model = Question
     template_name = 'polls/results.html'
+
+class PollsByUserListView(LoginRequiredMixin, generic.ListView):
+    login_url = '../../../accounts/login/'
+    model = Question
+    template_name ='polls/polls_list_creator_user.html'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        return Question.objects.filter(creator=self.request.user).order_by('pub_date')
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
@@ -53,3 +73,99 @@ def vote(request, question_id):
         # with POST data. This prevents data from being posted twice if a
         # user hits the Back button.
         return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+
+def edit_question_view(request, question_id):
+    question_instance = get_object_or_404(Question, pk=question_id)
+
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding):
+        form = QuestionForm(request.POST)
+
+        # Check if the form is valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            question_instance.question_text = form.cleaned_data['edited_question_text']
+            question_instance.pub_date = form.cleaned_data['edited_pub_date']
+            question_instance.save()
+
+            # redirect to a new URL:
+            return HttpResponseRedirect(reverse('polls:myPolls') )
+
+    # If this is a GET (or any other method) create the default form.
+    else:
+        proposed_question_text_edited = question_instance.question_text
+        proposed_pub_date_edited = question_instance.pub_date
+        choices = Choice.objects.filter(question=question_instance);
+        choicesForm = []
+        for ch in choices:
+            choicesForm += [ChoiceForm(initial={'choice_text': ch.choice_text})]
+        form = QuestionForm(initial={'edited_question_text': proposed_question_text_edited, 'edited_pub_date': proposed_pub_date_edited, 'choices': choicesForm})
+
+    context = {
+        'form': form,
+        'question_instance': question_instance,
+    }
+
+    return render(request, 'polls/edit_question.html', context)
+
+def new_poll(request):
+    question_instance = Question()
+
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding):
+        form = NewPollForm(request.POST)
+
+        # Check if the form is valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            question_instance.question_text = form.cleaned_data['new_question_text']
+            question_instance.pub_date = form.cleaned_data['new_pub_date']
+            question_instance.creator = request.user
+            question_instance.save()
+
+            # redirect to a new URL:
+            return HttpResponseRedirect(reverse('polls:myPolls'))
+    else:
+        proposed_question_text_edited = question_instance.question_text
+        proposed_pub_date_edited = question_instance.pub_date
+        form = NewPollForm(initial={'new_question_text': proposed_question_text_edited, 'new_pub_date': proposed_pub_date_edited})
+
+    context = {
+        'form': form,
+        'question_instance': question_instance,
+    }
+
+
+    return render(request, 'polls/edit_question.html', context)
+
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=raw_password)
+            login(request, user)
+            return redirect('polls:index')
+    else:
+        form = SignUpForm()
+    return render(request, 'registration/signup.html', {'form': form})
+
+def profile(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST,instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('polls:index')
+    else:
+        form = UserUpdateForm(instance=request.user)
+
+    context={'form': form}
+    return render(request, 'registration/edit_profile.html', context)
+    

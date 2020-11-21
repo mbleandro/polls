@@ -1,0 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>My Questions</h1>
+
+    {% if question_list %}
+    <ul>
+
+      {% for quest in question_list %} 
+      <li>
+        <a href="{% url 'polls:edit-question' quest.id%}">{{quest.question_text}}</a>        
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% else %}
+      <p>There are no created questions.</p>
+    {% endif %}       
+{% endblock %}

@@ -51,11 +51,13 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'pollsSite.urls'
+LOGIN_REDIRECT_URL = '/polls'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
