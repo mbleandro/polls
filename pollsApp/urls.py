@@ -17,7 +17,11 @@ urlpatterns = [
     # /polls/5/edit
     path('<int:question_id>/edit/', views.edit_question_view, name='edit-question'),
     # /polls/newpoll
-    path('newpoll/', views.new_poll, name = 'newPoll'),
+    path('newpoll/', views.new_poll, name='newPoll'),
+    #/polls/5/newchoice
+    path('<int:question_id>/newchoice/', views.new_choice, name='newChoice'),
+    #/polls/5/newchoice
+    path('<int:choice_id>/editchoice/', views.edit_choice, name='editChoice'),
     # /polls/singup
     path('signup/', views.signup, name='signup'),
     # /polls/myprofile

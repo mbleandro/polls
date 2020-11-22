@@ -3,16 +3,9 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
     
 
-class ChoiceForm(forms.Form):
-    choice_text = forms.CharField(help_text="Enter text for choice!")
-    def clean_choice_text(self):
-        data = self.cleaned_data['choice_text']
-        return data
-
 class QuestionForm(forms.Form):
     edited_question_text = forms.CharField(help_text="Enter new text for question!")
     edited_pub_date = forms.DateField(help_text="Enter new publication date!")
-    choices = []
     def clean_edited_question_text(self):
         data = self.cleaned_data['edited_question_text']
         
@@ -36,6 +29,12 @@ class NewPollForm(forms.Form):
         data = self.cleaned_data['edited_pub_date']
         
         # Remember to always return the cleaned data.
+        return data
+
+class NewChoiceForm(forms.Form):
+    new_choice_text = forms.CharField(help_text="Enter text for choice!")
+    def clean_choice_text(self):
+        data = self.cleaned_data['choice_text']
         return data
 
 

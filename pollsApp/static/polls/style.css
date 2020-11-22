@@ -1,12 +1,12 @@
-p {
-    align-items: center;
+li {
+    align-items: initial;
     text-align: center;
-    border: 5px;
-    border-color: black;
-}
-p a {
     color: black;
-    font-size: larger;
+    border: 1px solid black;
+}
+
+li a {
+    color: black;
 }
 
 /*body {
@@ -18,3 +18,34 @@ p a {
     padding: 0;
     list-style: none;
 }
+
+.header-style {
+    background-color: #4797ff;
+    margin-top: 0;
+    padding: 20px 20px 20px 40px;
+}
+
+.menu-style {
+    background-color: #4797ff;
+    height: 100hv;
+}
+
+.menu-item {
+    border: 2px solid black;
+}
+
+.body-style {
+    align-items: center;
+    vertical-align: center;
+    padding: 10px;
+}
+
+form {
+    align-items: center;
+    vertical-align: center;
+}
+
+.all-style {
+    height: 500px;
+}
+

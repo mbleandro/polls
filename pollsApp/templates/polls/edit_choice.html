@@ -3,11 +3,11 @@
 <link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}">
 
 {% block title %}
-    <h1>Create Question</h1>
+    <h1>Edit Choice</h1>
 {% endblock %}
 
 {% block content %}
-  <h1>Question Text: {{ question_instance.question_text }}</h1>
+  <h1>Create a choice for: {{ question_text }}</h1>
   <form action="" method="post">
     {% csrf_token %}
     <table>

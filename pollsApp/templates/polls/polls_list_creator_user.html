@@ -1,4 +1,10 @@
 {% extends "base_generic.html" %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}">
+
+{% block title %}
+    <h1>Your Creations</h1>
+{% endblock %}
 
 {% block content %}
     <h1>My Questions</h1>

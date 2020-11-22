@@ -1,4 +1,10 @@
 {% extends "base_generic.html" %}
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'polls/style.css' %}">
+
+{% block title %}
+    <h1>Edit Question</h1>
+{% endblock %}
 
 {% block content %}
   <h1>Question Text: {{ question_instance.question_text }}</h1>
@@ -7,6 +13,11 @@
     <table>
     {{ form.as_table }}
     </table>
+    <h2>Choices:</h2>
+    {% for choice in question_instance.choice_set.all %}
+        <p><a href="{% url 'polls:editChoice' choice.id %}">{{ choice.choice_text }}</a></p>
+    {% endfor %}
+    <p><a href="{% url 'polls:newChoice' question_instance.id %}">+ Add new choice</a></p>
     <input type="submit" value="Submit">
   </form>
 {% endblock %}

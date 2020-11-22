@@ -16,7 +16,7 @@ from .form import QuestionForm
 from .form import SignUpForm
 from .form import UserUpdateForm
 from .form import NewPollForm
-from .form import ChoiceForm
+from .form import NewChoiceForm
 
 class IndexView(LoginRequiredMixin, generic.ListView):
     login_url = '../accounts/login/'
@@ -30,7 +30,7 @@ class IndexView(LoginRequiredMixin, generic.ListView):
         """
         return Question.objects.filter(
             pub_date__lte=timezone.now()
-        ).order_by('-pub_date')[:5]
+        ).order_by('-pub_date')
 
 class DetailView(LoginRequiredMixin, generic.DetailView):
     login_url = '../../accounts/login/'
@@ -54,7 +54,7 @@ class PollsByUserListView(LoginRequiredMixin, generic.ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        return Question.objects.filter(creator=self.request.user).order_by('pub_date')
+        return Question.objects.filter(creator=self.request.user).order_by('-pub_date')
 
 def vote(request, question_id):
     question = get_object_or_404(Question, pk=question_id)
@@ -77,6 +77,8 @@ def vote(request, question_id):
 def edit_question_view(request, question_id):
     question_instance = get_object_or_404(Question, pk=question_id)
 
+    if (question_instance.creator != request.user):
+        raise ValueError('HEY, BRO!! You do not have permission to edit this question!')
     # If this is a POST request then process the Form data
     if request.method == 'POST':
 
@@ -97,11 +99,7 @@ def edit_question_view(request, question_id):
     else:
         proposed_question_text_edited = question_instance.question_text
         proposed_pub_date_edited = question_instance.pub_date
-        choices = Choice.objects.filter(question=question_instance);
-        choicesForm = []
-        for ch in choices:
-            choicesForm += [ChoiceForm(initial={'choice_text': ch.choice_text})]
-        form = QuestionForm(initial={'edited_question_text': proposed_question_text_edited, 'edited_pub_date': proposed_pub_date_edited, 'choices': choicesForm})
+        form = QuestionForm(initial={'edited_question_text': proposed_question_text_edited, 'edited_pub_date': proposed_pub_date_edited})
 
     context = {
         'form': form,
@@ -128,7 +126,7 @@ def new_poll(request):
             question_instance.save()
 
             # redirect to a new URL:
-            return HttpResponseRedirect(reverse('polls:myPolls'))
+            return HttpResponseRedirect('/polls/' + str(question_instance.pk) + '/newchoice')
     else:
         proposed_question_text_edited = question_instance.question_text
         proposed_pub_date_edited = question_instance.pub_date
@@ -140,8 +138,69 @@ def new_poll(request):
     }
 
 
-    return render(request, 'polls/edit_question.html', context)
+    return render(request, 'polls/create_poll.html', context)
 
+def new_choice(request, question_id):
+    choice_instance = Choice()
+    question = get_object_or_404(Question, pk=question_id)
+
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding):
+        form = NewChoiceForm(request.POST)
+
+        # Check if the form is valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            choice_instance.choice_text = form.cleaned_data['new_choice_text']
+            choice_instance.question = question
+            choice_instance.save()
+
+            # redirect to a new URL:
+            return HttpResponseRedirect('/polls/'+str(question_id)+'/newchoice')
+    else:
+        proposed_choice_text = choice_instance.choice_text
+        form = NewChoiceForm(initial={'new_choice_text': proposed_choice_text})
+
+    context = {
+        'form': form,
+        'choice_instance': choice_instance,
+        'question_text': question.question_text
+    }
+    return render(request, 'polls/create_choice.html', context)
+
+def edit_choice(request, choice_id):
+    choice_instance = get_object_or_404(Choice, pk=choice_id)
+    question = get_object_or_404(Question, pk=choice_instance.question.pk)
+    if (question.creator != request.user):
+        raise ValueError('HEY, BRO!! You do not have permission to edit this choice!')
+
+    # If this is a POST request then process the Form data
+    if request.method == 'POST':
+
+        # Create a form instance and populate it with data from the request (binding):
+        form = NewChoiceForm(request.POST)
+
+        # Check if the form is valid:
+        if form.is_valid():
+            # process the data in form.cleaned_data as required (here we just write it to the model due_back field)
+            choice_instance.choice_text = form.cleaned_data['new_choice_text']
+            choice_instance.question = question
+            choice_instance.save()
+
+            # redirect to a new URL:
+            return HttpResponseRedirect('/polls/'+str(question_id)+'/edit')
+    else:
+        proposed_choice_text = choice_instance.choice_text
+        form = NewChoiceForm(initial={'new_choice_text': proposed_choice_text})
+
+    context = {
+        'form': form,
+        'choice_instance': choice_instance,
+        'question_text': question.question_text
+    }
+    return render(request, 'polls/edit_choice.html', context)
 
 def signup(request):
     if request.method == 'POST':
