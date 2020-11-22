@@ -1,6 +1,6 @@
 # polls
-Para rodar o programa é necessário que tenha-se instalado em sua máquina o Python (Versão 3) e o Django.
-A instalação do Python é simples, basta executar o instalador do link: https://www.python.org/downloads/
+Para rodar o programa é necessário que tenha-se instalado em sua máquina o Python (Versão 3) e o Django.<br />
+A instalação do Python é simples, basta executar o instalador do link: https://www.python.org/downloads/<br />
 A instalação do Django é um pouco mais complexa, recomendo que siga o tutorial do link: https://docs.djangoproject.com/pt-br/3.1/topics/install/#installing-official-release<br />
 <br />
 
