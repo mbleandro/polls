@@ -190,7 +190,7 @@ def edit_choice(request, choice_id):
             choice_instance.save()
 
             # redirect to a new URL:
-            return HttpResponseRedirect('/polls/'+str(question_id)+'/edit')
+            return HttpResponseRedirect('/polls/'+str(question.pk)+'/edit')
     else:
         proposed_choice_text = choice_instance.choice_text
         form = NewChoiceForm(initial={'new_choice_text': proposed_choice_text})
